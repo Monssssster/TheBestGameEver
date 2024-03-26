@@ -8,11 +8,15 @@ public class EnemyAI : MonoBehaviour
     public List<Transform> patrolPoints;
     public PlayerController player;
     public float viewAngle;
+    public float damage = 30;
+    public float attackDistance = 1;
+    public Animator animator;
 
     //public Transform targetPoint;
 
     private NavMeshAgent _navMeshAgent;
     private bool _isPlayerNoticed;
+    private PlayerHealth _playerHealth;
 
     // Start is called before the first frame update
     private void Start()
@@ -24,6 +28,7 @@ public class EnemyAI : MonoBehaviour
     private void InitComponentLinks()
     {
         _navMeshAgent = GetComponent<NavMeshAgent>();
+        _playerHealth = player.GetComponent<PlayerHealth>();
     }
 
     // Update is called once per frame
@@ -31,14 +36,35 @@ public class EnemyAI : MonoBehaviour
     {
         NoticePlayerUpdate();
         ChaseUpdate();
+        AttackUpdate();
         PatrolUpdate();
+    }
+
+    private void AttackUpdate()
+    {
+        if(_isPlayerNoticed)
+        {
+            if(_navMeshAgent.remainingDistance <= (_navMeshAgent.stoppingDistance + attackDistance))
+            {
+                animator.SetTrigger("attack");
+            }
+        }
+    }
+
+    public void AttackDamage()
+    {
+        if(!_isPlayerNoticed) return;
+        if(_navMeshAgent.remainingDistance <= _navMeshAgent.stoppingDistance) return;
+        _playerHealth.DealDamage(damage);
     }
 
     private void NoticePlayerUpdate()
     {
-        var direction = player.transform.position - transform.position;
-        _isPlayerNoticed = false;
 
+        _isPlayerNoticed = false;
+        if(!_playerHealth.IsAlive()) return;
+
+        var direction = player.transform.position - transform.position;
         if(Vector3.Angle(transform.forward, direction) < viewAngle)
         {
 
@@ -57,12 +83,12 @@ public class EnemyAI : MonoBehaviour
     {
         if (!_isPlayerNoticed)
         {
-            if (_navMeshAgent.remainingDistance == 0)
+            if (_navMeshAgent.remainingDistance <= _navMeshAgent.stoppingDistance)
             {
                 PickNewPatrolPoint();
             }
         }
-        //_navMeshAgent.destination = targetPoint.position;
+        
     }
 
     private void PickNewPatrolPoint()
