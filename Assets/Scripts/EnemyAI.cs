@@ -17,8 +17,13 @@ public class EnemyAI : MonoBehaviour
     private NavMeshAgent _navMeshAgent;
     private bool _isPlayerNoticed;
     private PlayerHealth _playerHealth;
+    private EnemyHealth _enemyHealth;
 
-    // Start is called before the first frame update
+    public bool IsAlive()
+    {
+        return _enemyHealth.IsAlive();
+    }
+
     private void Start()
     {
         InitComponentLinks();
@@ -29,6 +34,7 @@ public class EnemyAI : MonoBehaviour
     {
         _navMeshAgent = GetComponent<NavMeshAgent>();
         _playerHealth = player.GetComponent<PlayerHealth>();
+        _enemyHealth = GetComponent<EnemyHealth>();
     }
 
     // Update is called once per frame
@@ -44,7 +50,7 @@ public class EnemyAI : MonoBehaviour
     {
         if(_isPlayerNoticed)
         {
-            if(_navMeshAgent.remainingDistance <= (_navMeshAgent.stoppingDistance + attackDistance))
+            if(_navMeshAgent.remainingDistance <= _navMeshAgent.stoppingDistance)
             {
                 animator.SetTrigger("attack");
             }
@@ -54,7 +60,7 @@ public class EnemyAI : MonoBehaviour
     public void AttackDamage()
     {
         if(!_isPlayerNoticed) return;
-        if(_navMeshAgent.remainingDistance <= _navMeshAgent.stoppingDistance) return;
+        if(_navMeshAgent.remainingDistance > (_navMeshAgent.stoppingDistance )) return; //+ attackDistance
         _playerHealth.DealDamage(damage);
     }
 
